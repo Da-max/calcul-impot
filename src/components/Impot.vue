@@ -1,12 +1,23 @@
 <template>
   <v-container>
-    <v-card max-width="344" class="mx-auto pa-10">
-      <v-text-field v-model="revenus" label="Revenus" suffix="€"></v-text-field>
-      <v-text-field v-model="impot" label="Impôt" suffix="€"></v-text-field>
+    <v-card max-width="444" class="mx-auto pa-10">
+      <v-text-field
+        v-model="revenus"
+        label="Revenus"
+        suffix="€"
+        :rules="numberRules"
+      ></v-text-field>
+      <v-text-field
+        v-model="impot"
+        label="Impôt"
+        suffix="€"
+        :disabled="true"
+      ></v-text-field>
       <v-text-field
         v-model="apresImpot"
         label="Après impôts"
         suffix="€"
+        :disabled="true"
       ></v-text-field>
       <v-switch v-model="pacse" label="Pacsé ou marié"></v-switch>
       <v-text-field v-model="nbEnfant" label="Nombre d’enfant⋅s"></v-text-field>
@@ -29,6 +40,9 @@ export default {
       },
       pacse: false,
       nbEnfant: 0,
+      numberRules: [
+        (v) => Number(v) == v || "Ce champ doit contenir un nombre.",
+      ],
     };
   },
 
@@ -51,10 +65,10 @@ export default {
         revenus -= tranches[i][0];
         i++;
       } while (revenus > 0 && i < 4);
-      return Math.round(impot * this.part);
+      return Math.round(impot * this.part) || 0;
     },
     apresImpot() {
-      return parseInt(this.revenus) - this.impot;
+      return parseInt(this.revenus) - this.impot || 0;
     },
     part() {
       let part = 1;
