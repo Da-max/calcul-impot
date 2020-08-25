@@ -30,7 +30,7 @@
           {{ detail.quantite }} x {{ detail.coef }} = {{ detail.payer }} €
         </v-list-item>
         <v-list-item
-          >Soit : {{ totalSansPart }} x {{ part }} = {{ impot }}</v-list-item
+          >Soit : {{ impotSansPart }} x {{ part }} = {{ impot }}</v-list-item
         >
       </v-list>
     </v-card>
@@ -103,7 +103,7 @@ export default {
       }
       return part;
     },
-    totalSansPart() {
+    impotSansPart() {
       let total = 0;
       this.details.forEach((detail) => {
         total += detail.payer;
