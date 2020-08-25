@@ -21,6 +21,18 @@
       ></v-text-field>
       <v-switch v-model="pacse" label="Pacsé ou marié"></v-switch>
       <v-text-field v-model="nbEnfant" label="Nombre d’enfant⋅s"></v-text-field>
+      <v-list>
+        <v-list-item
+          >Revenus imposable : {{ revenus }} ÷ {{ part }} =
+          {{ Math.round(revenus / part) }}</v-list-item
+        >
+        <v-list-item v-for="detail in details" :key="detail.coef">
+          {{ detail.quantite }} x {{ detail.coef }} = {{ detail.payer }} €
+        </v-list-item>
+        <v-list-item
+          >Soit : {{ totalSansPart }} x {{ part }} = {{ impot }}</v-list-item
+        >
+      </v-list>
     </v-card>
   </v-container>
 </template>
@@ -32,39 +44,50 @@ export default {
   data() {
     return {
       revenus: 0,
-      BAREME: {
-        10065: 0,
-        15595: 0.11,
-        47710: 0.3,
-        84437: 0.4,
-      },
+      tranches: [
+        { max: 10064, coef: 0 },
+        { max: 15595, coef: 0.11 },
+        { max: 47710, coef: 0.3 },
+        { max: 84437, coef: 0.41 },
+        { max: Infinity, coef: 0.45 },
+      ],
       pacse: false,
       nbEnfant: 0,
       numberRules: [
         (v) => Number(v) == v || "Ce champ doit contenir un nombre.",
       ],
+      details: [],
     };
   },
 
   computed: {
     impot() {
+      this.details = [];
       let impot = 0;
       let revenus = parseFloat(this.revenus);
       revenus /= this.part;
 
-      const tranches = Object.entries(this.BAREME);
-      let i = 0;
-      do {
-        let tranche = revenus - tranches[i][0];
-        console.log(revenus);
-        if (tranche > 0) {
-          impot += tranches[i][0] * tranches[i][1];
+      this.tranches.forEach((tranche) => {
+        if (revenus > tranche.max) {
+          const payer = tranche.max * tranche.coef;
+          impot += payer;
+          revenus -= tranche.max;
+          this.details.push({
+            quantite: tranche.max,
+            coef: tranche.coef,
+            payer: Math.round(payer),
+          });
         } else {
-          impot += revenus * tranches[i][1];
+          const payer = revenus * tranche.coef;
+          impot += payer;
+          this.details.push({
+            quantite: revenus,
+            coef: tranche.coef,
+            payer: Math.round(payer),
+          });
+          revenus = 0;
         }
-        revenus -= tranches[i][0];
-        i++;
-      } while (revenus > 0 && i < 4);
+      });
       return Math.round(impot * this.part) || 0;
     },
     apresImpot() {
@@ -79,6 +102,13 @@ export default {
         part += this.nbEnfant / 2;
       }
       return part;
+    },
+    totalSansPart() {
+      let total = 0;
+      this.details.forEach((detail) => {
+        total += detail.payer;
+      });
+      return total;
     },
   },
 };
