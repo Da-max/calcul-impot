@@ -8,6 +8,8 @@
         label="Après impôts"
         suffix="€"
       ></v-text-field>
+      <v-switch v-model="pacse" label="Pacsé ou marié"></v-switch>
+      <v-text-field v-model="nbEnfant" label="Nombre d’enfant⋅s"></v-text-field>
     </v-card>
   </v-container>
 </template>
@@ -25,6 +27,8 @@ export default {
         47710: 0.3,
         84437: 0.4,
       },
+      pacse: false,
+      nbEnfant: 0,
     };
   },
 
@@ -32,6 +36,8 @@ export default {
     impot() {
       let impot = 0;
       let revenus = parseFloat(this.revenus);
+      revenus /= this.part;
+
       const tranches = Object.entries(this.BAREME);
       let i = 0;
       do {
@@ -45,10 +51,20 @@ export default {
         revenus -= tranches[i][0];
         i++;
       } while (revenus > 0 && i < 4);
-      return Math.round(impot);
+      return Math.round(impot * this.part);
     },
     apresImpot() {
-      return this.revenus - this.impot;
+      return parseInt(this.revenus) - this.impot;
+    },
+    part() {
+      let part = 1;
+      if (this.pacse) {
+        part++;
+      }
+      if (parseInt(this.nbEnfant) > 0) {
+        part += this.nbEnfant / 2;
+      }
+      return part;
     },
   },
 };
